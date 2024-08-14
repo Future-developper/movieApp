@@ -5,7 +5,12 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, DecimalField, SubmitField
 from wtforms.validators import DataRequired, NumberRange
 import requests
-
+API_KEY = "73fae39fe9ff5e126071ad4137d56201"
+URL = "https://api.themoviedb.org/3/search/movie"
+headers = {
+    "accept": "application/json",
+    "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI3M2ZhZTM5ZmU5ZmY1ZTEyNjA3MWFkNDEzN2Q1NjIwMSIsIm5iZiI6MTcyMzYxODM2Ni44ODIxNTMsInN1YiI6IjY2YmM0YzdlMjY2YmFmZWYxNDhjN2U0MyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.ivc2tDb-m7EqAA_MD-MGL95c_ilim0mBnWPaYbUGJo0"
+}
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///10-favourite-movies-database.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -68,7 +73,11 @@ def delete():
 def add():
     form = FindMovieForm()
     if form.validate_on_submit():
-        response = requests.get()
+        query_params = {'query': form.title.data, 'include_adult': True, 'language': 'en-US', 'page': 1}
+        response = requests.get(URL, headers=headers, params=query_params)
+        data = response.json()['results']
+        movies = [(movie["original_title"], movie["release_date"]) for movie in data]
+        return render_template('select.html', movies=movies)
     return render_template('add.html', form=form)
 
 if __name__ == '__main__':
